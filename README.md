@@ -7,6 +7,34 @@ This interface gives you easy access to WiFi, Bluetooth, Sniffing, Attack, GPS, 
 
 ---
 
+## 🚀 Requirements
+
+* Any ESP32 device with **4MB Flash** (Recommended: **ESP32-U**)
+* Laptop with **Google Chrome** browser
+* Internet connection
+* Pre-compiled firmware files
+
+---
+
+## 🔧 Flashing Instructions
+
+1. Read the [ESP32Marauder Wiki](https://github.com/justcallmekoko/ESP32Marauder/wiki) for detailed flashing steps.
+
+2. Download the following firmware components:
+
+   * **ESP32Marauder** → `0000` [ESP32Marauder](https://github.com/justcallmekoko/ESP32Marauder/releases/download/v1.8.4/esp32_marauder_v1_8_4_20250806_v6.bin)
+   * **Bootloader** → `0x1000` [bootloader](https://github.com/justcallmekoko/ESP32Marauder/raw/master/FlashFiles/MarauderV4/esp32_marauder.ino.bootloader.bin)
+   * **Partitions** → `0x8000` [Partitions](https://github.com/justcallmekoko/ESP32Marauder/raw/master/FlashFiles/MarauderV4/esp32_marauder.ino.partitions.bin)
+   * **Boot App** → `0xE000` [Boot App](https://github.com/justcallmekoko/ESP32Marauder/raw/master/FlashFiles/FlipperZeroMultiBoardS3/boot_app0.bin)
+
+3. Open [ESP Web Flasher](https://esptool.spacehuhn.com/) in **Chrome**.
+
+4. Connect your ESP32 and flash the above binaries at their respective offsets.
+
+<img width="843" height="749" alt="Screenshot 2025-08-16 181543" src="https://github.com/user-attachments/assets/ee89a69b-3773-418e-a193-4b9bb3829291" />
+
+---
+
 ## ✨ Features
 
 * 📡 **WiFi Tools** – Scan APs, list devices, deauth, ARP scan, ping scan.
