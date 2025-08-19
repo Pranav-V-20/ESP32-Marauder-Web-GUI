@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Marauder Web GUI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: #1c1c1c;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      border-right: 2px solid #333;
+    }
+    .sidebar h2 {
+      color: #4CAF50;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      padding: 10px;
+      margin: 5px 0;
+      background: #333;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      text-align: left;
+    }
+    .tab-btn:hover {
+      background: #4CAF50;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: #222;
+      padding: 15px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      border-bottom: 2px solid #333;
+      color: #4CAF50;
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+    }
+
+    .panel {
+      flex: 1;
+      display: none;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .panel.active {
+      display: block;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .action-btn {
+      padding: 15px;
+      background: #333;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .action-btn:hover {
+      background: #4CAF50;
+    }
+
+    /* Terminal */
+    .terminal {
+      background: black;
+      color: #0f0;
+      height: 300px; /* increased size */
+      overflow-y: auto;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      border-top: 2px solid #333;
+      white-space: pre-wrap;  /* preserve line breaks */
+      line-height: 1.4;
+    }
+
+    /* Command Input */
+    .command-input {
+      display: flex;
+      border-top: 2px solid #333;
+      background: #1c1c1c;
+      padding: 10px;
+    }
+    .command-input input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+      background: #222;
+      color: #fff;
+    }
+    .command-input button {
+      margin-left: 10px;
+      padding: 10px 15px;
+      background: #4CAF50;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    button.connect {
+      background: #4CAF50;
+      border: none;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Marauder</h2>
+    <button class="tab-btn" onclick="openTab('wifi')">📡 WiFi</button>
+    <button class="tab-btn" onclick="openTab('ble')">🟦 Bluetooth</button>
+    <button class="tab-btn" onclick="openTab('sniff')">👀 Sniffing</button>
+    <button class="tab-btn" onclick="openTab('attack')">⚡ Attacks</button>
+    <button class="tab-btn" onclick="openTab('portal')">🌐 Evil Portal</button>
+    <button class="tab-btn" onclick="openTab('gps')">📍 GPS</button>
+    <button class="tab-btn" onclick="openTab('system')">⚙️ System</button>
+    <button class="connect" onclick="connectSerial()">🔌 Connect</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="topbar">ESP32 Web Marauder GUI</div>
+    <div class="content">
+      <!-- WiFi Panel -->
+      <div id="wifi" class="panel active">
+        <h3>WiFi Tools</h3>
+        <div class="btn-grid">
+          <button class="action-btn" onclick="sendCommand('scanap')">Scan AP</button>
+          <button class="action-btn" onclick="sendCommand('stopscan')">Stop Scan</button>
+          <button class="action-btn" onclick="sendCommand('list -a')">List APs</button>
+          <button class="action-btn" onclick="sendCommand('attack deauth')">Deauth Attack</button>
+          <button class="action-btn" onclick="sendCommand('pingscan')">Ping Scan</button>
+          <button class="action-btn" onclick="sendCommand('arpscan')">ARP Scan</button>
+        </div>
+      </div>
+
+      <!-- BLE Panel -->
+      <div id="ble" class="panel">
+        <h3>Bluetooth Tools</h3>
+        <div class="btn-grid">
+          <button class="action-btn" onclick="sendCommand('sniffbt')">Sniff BT</button>
+          <button class="action-btn" onclick="sendCommand('blespam -t all')">BLE Spam</button>
+          <button class="action-btn" onclick="sendCommand('btwardrive')">BT WarDrive</button>
+        </div>
+      </div>
+
+      <!-- Sniffing Panel -->
+      <div id="sniff" class="panel">
+        <h3>Sniffing</h3>
+        <div class="btn-grid">
+          <button class="action-btn" onclick="sendCommand('sniffraw')">Raw Sniff</button>
+          <button class="action-btn" onclick="sendCommand('sniffpmkid')">PMKID Sniff</button>
+          <button class="action-btn" onclick="sendCommand('sniffdeauth')">Deauth Sniff</button>
+        </div>
+      </div>
+
+      <!-- Attack Panel -->
+      <div id="attack" class="panel">
+        <h3>Attacks</h3>
+        <div class="btn-grid">
+          <button class="action-btn" onclick="sendCommand('attack deauth')">Deauth</button>
+          <button class="action-btn" onclick="sendCommand('attack probe')">Probe Flood</button>
+          <button class="action-btn" onclick="sendCommand('attack rickroll')">Rickroll</button>
+        </div>
+      </div>
+
+      <!-- Evil Portal -->
+      <div id="portal" class="panel">
+        <h3>Evil Portal</h3>
+        <div class="btn-grid">
+          <button class="action-btn" onclick="sendCommand('evilportal -c start')">Start Portal</button>
+          <button class="action-btn" onclick="sendCommand('evilportal sethtml')">Set HTML</button>
+        </div>
+      </div>
+
+      <!-- GPS -->
+      <div id="gps" class="panel">
+        <h3>GPS</h3>
+        <div class="btn-grid">
+          <button class="action-btn" onclick="sendCommand('gpsdata')">GPS Data</button>
+          <button class="action-btn" onclick="sendCommand('gps sat')">Satellites</button>
+          <button class="action-btn" onclick="sendCommand('wardrive')">Wardrive</button>
+        </div>
+      </div>
+
+      <!-- System -->
+      <div id="system" class="panel">
+        <h3>System</h3>
+        <div class="btn-grid">
+          <button class="action-btn" onclick="sendCommand('info')">Info</button>
+          <button class="action-btn" onclick="sendCommand('reboot')">Reboot</button>
+          <button class="action-btn" onclick="sendCommand('ls /')">File System</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div id="terminal" class="terminal">Waiting for connection...</div>
+
+    <!-- Command Input Section -->
+    <div class="command-input">
+      <input id="cmdInput" type="text" placeholder="Enter command...">
+      <button onclick="sendInputCommand()">▶ Enter</button>
+    </div>
+  </div>
+
+  <script>
+    let port, writer, reader;
+    let decoder = new TextDecoder();
+    let encoder = new TextEncoder();
+    let buffer = ""; // to accumulate serial output cleanly
+
+    async function connectSerial() {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+
+        updateTerminal("✅ Connected to ESP32\n");
+        listenToSerial();
+      } catch (err) {
+        alert("Connection failed: " + err.message);
+      }
+    }
+
+    async function listenToSerial() {
+      while (port.readable) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let lines = buffer.split("\n");
+        buffer = lines.pop(); // keep incomplete line
+
+        for (let line of lines) {
+          updateTerminal(line.trim() + "\n");
+        }
+      }
+    }
+
+    async function sendCommand(cmd) {
+      if (!writer) {
+        alert("Not connected!");
+        return;
+      }
+      updateTerminal("\n> " + cmd + "\n");
+      await writer.write(encoder.encode(cmd + "\n"));
+    }
+
+    function updateTerminal(text) {
+      const term = document.getElementById("terminal");
+      term.textContent += text;
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function openTab(tabId) {
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+    }
+
+    function sendInputCommand() {
+      const input = document.getElementById("cmdInput");
+      const cmd = input.value.trim();
+      if (cmd) {
+        sendCommand(cmd);
+        input.value = "";
+        input.focus(); // auto-focus after sending
+      }
+    }
+
+    // allow pressing Enter key in the input
+    document.addEventListener("DOMContentLoaded", () => {
+      const input = document.getElementById("cmdInput");
+      input.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+          sendInputCommand();
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
